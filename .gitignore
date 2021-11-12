@@ -1,4 +1,8 @@
 # Byte-compiled / optimized / DLL files
+datasets/
+dataset/
+ssml-key
+
 __pycache__/
 *.py[cod]
 *$py.class
