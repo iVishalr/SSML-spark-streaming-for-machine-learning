@@ -1,19 +1,27 @@
-from pyspark.sql import SparkSession as spark
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import explode,split,from_json
-from pyspark.sql.types import IntegerType, StringType, StructField, StructType,ArrayType
+from pyspark.sql.types import IntegerType, StructField, StructType
 from pyspark.sql import SQLContext
+from pyspark.ml.feature import StandardScaler
+from sparkdl.image import imageIO
+
 import json
 import numpy as np
-def print_rdd(rdd):
+
+def Standardize(df):
+    scaler = StandardScaler(inputCol="image", outputCol="scaled_image",withStd=True, withMean=False)
+    scalerModel = scaler.fit(df)
+
+    # Normalize each feature to have unit standard deviation.
+    scaledData = scalerModel.transform(df)
+    return scaledData
+
+def map_rdd_to_df(rdd):
     if not rdd.isEmpty():
-        schema = StructType([StructField("image",ArrayType(ArrayType(ArrayType(IntegerType()))),True), StructField("label", ArrayType(IntegerType()), True)])
+        schema = StructType([StructField("image",imageIO.imageSchema,True), StructField("label", IntegerType(), True)])
         df = sql_context.createDataFrame(rdd, schema)
-        # for i,ele in enumerate(rdd.collect()):
-        #     print(ele)
         df.show()
+
     print("Total Batch Size of RDD :",len(rdd.collect()))
     print("----------------------------")
 
@@ -24,17 +32,13 @@ sql_context = SQLContext(sc)
 stream = ssc.socketTextStream("localhost",6100)
 
 json_stream = stream.map(lambda line: json.loads(line))   
-keys = json_stream.flatMap(lambda x:list(map(int,x.keys()))) # [0 8,1 8,2,3,4,5..31]
+keys = json_stream.flatMap(lambda x:list(map(int,x.keys()))) 
                                                                
 json_stream_exploded = json_stream.flatMap(lambda x: x.values())
 
-pixels = json_stream_exploded.map(lambda x: list((np.array([[v for k,v in x.items() if 'feature' in k]]).reshape(3,32,32).tolist(),[v for k,v in x.items() if 'label' in k])))
-
-pixels.foreachRDD(print_rdd)
+pixels = json_stream_exploded.map(lambda x: [imageIO.imageArrayToStruct(np.array([[v for k,v in x.items() if 'feature' in k]]).reshape(32,32,3)/255.0),[v for k,v in x.items() if 'label' in k][0]])
+pixels.foreachRDD(map_rdd_to_df)
 
 
 ssc.start()
 ssc.awaitTermination()
-
-
-
