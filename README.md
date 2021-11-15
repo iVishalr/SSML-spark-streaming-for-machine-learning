@@ -20,6 +20,7 @@ $ python3 ./stream.py --file="cifar" --batch-size=32
 
 Execute the following command in terminal to execute the driver code.
 
+
 ```bash
 $ /opt/spark/bin/spark-submit <Absolute_Path_To_Streaming.py> > output.txt 2>outputlog.txt
 ```
