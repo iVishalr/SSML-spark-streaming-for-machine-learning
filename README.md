@@ -13,7 +13,7 @@ Download and extract the dataset from [here](https://drive.google.com/drive/fold
 Execute the following code in terminal to start streaming the dataset.
 
 ```bash
-$ python3 ./stream.py --file="cifar" --batch-size=32 --endless="0"
+$ python3 ./stream.py --file="cifar" --batch-size=32
 ```
 
 ## Executing the spark driver code
