@@ -35,7 +35,6 @@ def connectTCP():   # connect to the TCP server -- there is no need to modify th
     print(f"Connected to {address}")
     return connection, address
 
-
 # separate function to stream CIFAR batches since the format is different
 def sendCIFARBatchFileToSpark(tcp_connection, input_batch_file):
     # load the entire dataset
