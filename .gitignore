@@ -3,6 +3,8 @@ datasets/
 dataset/
 ssml-key
 
+cifar
+
 __pycache__/
 *.py[cod]
 *$py.class
@@ -131,3 +133,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+output.txt
+outputLog.txt
+ivyleague.txt

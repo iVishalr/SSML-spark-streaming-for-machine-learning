@@ -1,0 +1,14 @@
+pandas
+numpy
+matplotlib
+tqdm
+pyspark==2.4.0
+Pillow
+keras==2.0.4
+tensorflow==1.13.1
+jieba
+tensorflowonspark
+sparkdl
+tensorframes
+kafka-python
+
