@@ -69,22 +69,22 @@ def sendCIFARBatchFileToSpark(tcp_connection, input_batch_file):
             print("Either batch size is too big for the dataset or the connection was closed")
         except Exception as error_message:
             print(f"Exception thrown but was handled: {error_message}")
-        time.sleep(1)
+        time.sleep(5)
 
 
 def streamCIFARDataset(tcp_connection, dataset_type='cifar'):
     print("Starting to stream CIFAR data")
     CIFAR_BATCHES = [
         'data_batch_1',
-        # 'data_batch_2',   # uncomment to stream the second training dataset
-        # 'data_batch_3',   # uncomment to stream the third training dataset
-        # 'data_batch_4',   # uncomment to stream the fourth training dataset
-        # 'data_batch_5',    # uncomment to stream the fifth training dataset
+        'data_batch_2',   # uncomment to stream the second training dataset
+        'data_batch_3',   # uncomment to stream the third training dataset
+        'data_batch_4',   # uncomment to stream the fourth training dataset
+        'data_batch_5',    # uncomment to stream the fifth training dataset
         # 'test_batch'      # uncomment to stream the test dataset
     ]
     for batch in CIFAR_BATCHES:
         sendCIFARBatchFileToSpark(tcp_connection, batch)
-        time.sleep(1)
+        time.sleep(5)
 
 
 def sendPokemonBatchFileToSpark(tcp_connection, input_batch_file):
@@ -253,6 +253,8 @@ if __name__ == '__main__':
             _function(tcp_connection, input_file)
     else:
         _function(tcp_connection, input_file)
+
+    tcp_connection.close()
 
 # Setup your own dataset streamer by following the examples above.
 # If you wish to stream a single newline delimited file, use streamFile()

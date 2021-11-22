@@ -24,6 +24,7 @@ class Normalize:
     def transform(self,matrix: np.ndarray) -> np.ndarray:
         
         shape = matrix.shape
+        matrix = matrix/255.0
         matrix = matrix.transpose(2,0,1)
         r = matrix[0]
         g = matrix[1]
