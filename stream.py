@@ -69,7 +69,7 @@ def sendCIFARBatchFileToSpark(tcp_connection, input_batch_file):
             print("Either batch size is too big for the dataset or the connection was closed")
         except Exception as error_message:
             print(f"Exception thrown but was handled: {error_message}")
-        time.sleep(5)
+        time.sleep(3)
 
 
 def streamCIFARDataset(tcp_connection, dataset_type='cifar'):
