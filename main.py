@@ -1,5 +1,5 @@
 from trainer import TrainingConfig, SparkConfig, Trainer
-from models.MLP import MLP
+from models import MLP,SVM,Kmeans
 
 from transforms import Transforms, RandomHorizontalFlip, Normalize
 
@@ -13,5 +13,7 @@ if __name__ == "__main__":
     train_config = TrainingConfig()
     spark_config = SparkConfig()
     mlp = MLP(layers=[3072,512,64,10])
+    svm = SVM()
+    km = Kmeans()
     trainer = Trainer(mlp,"train", train_config, spark_config, transforms)
     trainer.train()

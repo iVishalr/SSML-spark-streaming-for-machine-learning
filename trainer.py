@@ -159,6 +159,7 @@ class Trainer:
                 print(f"Loss = {loss}")
                 print(f"Precision = {precision}")
                 print(f"Recall = {recall}")
+                print(f"F1 Score = {f1}")
 
             self.accuracy.append(accuracy)
             self.loss.append(loss)
@@ -172,15 +173,16 @@ class Trainer:
             self.smooth_recall.append(np.mean(self.recall))
             self.smooth_f1.append(np.mean(self.f1))
 
-            if self.batch_count!=0 and self.batch_count%(self.configs.num_samples//self.configs.batch_size) == 0:
-                self.epoch+=1
+            if self.split is 'train':
+                if self.batch_count!=0 and self.batch_count%(self.configs.num_samples//self.configs.batch_size) == 0:
+                    self.epoch+=1
 
-            if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==(self.configs.num_samples//self.configs.batch_size) and self.epoch%self.configs.ckpt_interval == 0):
-                self.save_checkpoint(f"epoch-{self.epoch}")
-                self.batch_count = 0
-            elif self.configs.ckpt_interval_batch is not None and self.batch_count!=0 and self.batch_count%self.configs.ckpt_interval_batch == 0:
-                self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
-
-        print(f"epoch: {self.epoch} | batch: {self.batch_count}")
+                if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==(self.configs.num_samples//self.configs.batch_size) and self.epoch%self.configs.ckpt_interval == 0):
+                    self.save_checkpoint(f"epoch-{self.epoch}")
+                    self.batch_count = 0
+                elif self.configs.ckpt_interval_batch is not None and self.batch_count!=0 and self.batch_count%self.configs.ckpt_interval_batch == 0:
+                    self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
+        if self.split is 'train':
+            print(f"epoch: {self.epoch} | batch: {self.batch_count}")
         print("Total Batch Size of RDD Received :",len(rdd.collect()))
         print("---------------------------------------")         
