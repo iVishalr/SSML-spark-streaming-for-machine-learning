@@ -3,6 +3,8 @@ datasets/
 dataset/
 ssml-key
 
+
+checkpoints
 cifar
 
 __pycache__/
@@ -137,3 +139,4 @@ output.txt
 outputLog.txt
 ivyleague.txt
 outputLog.txt
+outputlog.txt
