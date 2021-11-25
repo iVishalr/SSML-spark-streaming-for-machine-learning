@@ -150,36 +150,37 @@ class Trainer:
             self.batch_count += 1
             schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
             df = self.sqlContext.createDataFrame(rdd, schema)
+            df.show()
+            # predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
 
-            predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
+            # if self.configs.verbose:
+            #     print(f"Predictions = {predictions}")
+            #     print(f"Accuracy = {accuracy}")
+            #     print(f"Loss = {loss}")
+            #     print(f"Precision = {precision}")
+            #     print(f"Recall = {recall}")
 
-            if self.configs.verbose:
-                print(f"Predictions = {predictions}")
-                print(f"Accuracy = {accuracy}")
-                print(f"Loss = {loss}")
-                print(f"Precision = {precision}")
-                print(f"Recall = {recall}")
+            # self.accuracy.append(accuracy)
+            # self.loss.append(loss)
+            # self.precision.append(precision)
+            # self.recall.append(recall)
+            # self.f1.append(f1)
 
-            self.accuracy.append(accuracy)
-            self.loss.append(loss)
-            self.precision.append(precision)
-            self.recall.append(recall)
-            self.f1.append(f1)
-
-            self.smooth_accuracy.append(np.mean(self.accuracy))
-            self.smooth_loss.append(np.mean(self.loss))
-            self.smooth_precision.append(np.mean(self.precision))
-            self.smooth_recall.append(np.mean(self.recall))
-            self.smooth_f1.append(np.mean(self.f1))
+            # self.smooth_accuracy.append(np.mean(self.accuracy))
+            # self.smooth_loss.append(np.mean(self.loss))
+            # self.smooth_precision.append(np.mean(self.precision))
+            # self.smooth_recall.append(np.mean(self.recall))
+            # self.smooth_f1.append(np.mean(self.f1))
 
             if self.batch_count!=0 and self.batch_count%(self.configs.num_samples//self.configs.batch_size) == 0:
                 self.epoch+=1
 
             if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==(self.configs.num_samples//self.configs.batch_size) and self.epoch%self.configs.ckpt_interval == 0):
-                self.save_checkpoint(f"epoch-{self.epoch}")
+                # self.save_checkpoint(f"epoch-{self.epoch}")
                 self.batch_count = 0
             elif self.configs.ckpt_interval_batch is not None and self.batch_count!=0 and self.batch_count%self.configs.ckpt_interval_batch == 0:
-                self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
+                # self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
+                pass
 
         print(f"epoch: {self.epoch} | batch: {self.batch_count}")
         print("Total Batch Size of RDD Received :",len(rdd.collect()))
