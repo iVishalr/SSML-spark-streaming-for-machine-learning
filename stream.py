@@ -104,14 +104,14 @@ class Dataset:
         self.data = list(map(np.ndarray.tolist, data))
         print(len(data))
         for ix in range(0,(len(self.data)//batch_size)*batch_size,batch_size):
-            print(ix)
+            # print(ix)
             image = self.data[ix:ix+batch_size]
             label = self.labels[ix:ix+batch_size]
             batch.append([image,label])
         
         self.data = self.data[ix+batch_size:]
         self.labels = self.labels[ix+batch_size:]
-        print(f"Remaining Images : {len(self.data)}")
+        # print(f"Remaining Images : {len(self.data)}")
         return batch
 
     # separate function to stream CIFAR batches since the format is different
@@ -146,7 +146,7 @@ class Dataset:
                 data_received+=1
                 pbar.update(1)
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
-                time.sleep(0)
+                time.sleep(3)
         for batch in [[self.data,self.labels]]:
                 image,labels = batch
                 image = np.array(image)
@@ -174,8 +174,8 @@ class Dataset:
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
                 self.data = []
                 self.labels = []
-                time.sleep(0)    
-        pbar.reset()
+                time.sleep(3)    
+        pbar.pos=0
         self.epoch+=1
 
     def connectTCP(self):   # connect to the TCP server -- there is no need to modify this function

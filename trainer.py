@@ -39,7 +39,7 @@ class SparkConfig:
     host = "local"
     stream_host = "localhost"
     port = 6100
-    batch_interval = 2
+    batch_interval = 3
 
     def __init__(self, **kwargs) -> None:
         for key,value in kwargs.items():
