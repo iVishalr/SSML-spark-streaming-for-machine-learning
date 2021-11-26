@@ -6,6 +6,7 @@ ssml-key
 
 checkpoints
 cifar
+cache
 
 __pycache__/
 *.py[cod]

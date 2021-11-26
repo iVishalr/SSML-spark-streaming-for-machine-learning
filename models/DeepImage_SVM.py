@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 
 register_spark()
 
-class SVM:
+class DeepImageSVM:
     def __init__(self, loss='log', penalty='l2'):
         self.model = SGDClassifier(loss=loss, penalty=penalty, random_state=0)
     
@@ -28,8 +28,9 @@ class SVM:
         model.n_iter_ = configs.max_epochs
         return model
 
-    def train(self, df: DataFrame, svm : SGDClassifier) -> List:
-        X = np.array(df.select("image").collect()).reshape(-1,3072)
+    def train(self, df: DataFrame, svm : SGDClassifier, path) -> List:
+        with open(path, "rb") as f:
+            X = np.load(f)
         y = np.array(df.select("label").collect()).reshape(-1)
         print(X.shape)
         print(y)
@@ -45,6 +46,8 @@ class SVM:
         print(predictions_prob)
         accuracy = svm.score(X,y)
         loss = log_loss(y,predictions_prob,labels=np.arange(0,10), eps=1e-1)
+        # loss = 0
+        # loss = -np.sum(y.reshape(-1,1)*(np.log(predictions_prob+1e-7)))
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)

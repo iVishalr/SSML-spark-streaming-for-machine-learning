@@ -1,5 +1,6 @@
 import numpy as np
 import pyspark
+import math
 import json
 import matplotlib.pyplot as plt
 from pyspark import conf
@@ -14,6 +15,8 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import IntegerType, StructField, StructType,StringType,BinaryType
 from pyspark.ml.linalg import VectorUDT, DenseVector
 from sklearn.neural_network import MLPClassifier
+from models import DeepImageMLP
+from models.DeepImage_SVM import DeepImageSVM
 
 from models.MLP import MLP
 
@@ -71,6 +74,12 @@ class Trainer:
         self.smooth_f1 = []
         self.epoch = 0
         self.batch_count = 0
+
+        self.test_accuracy = 0
+        self.test_loss = 0
+        self.test_recall = 0
+        self.test_precision = 0
+        self.test_f1 = 0
 
     def save_checkpoint(self, message):
 
@@ -150,8 +159,11 @@ class Trainer:
             self.batch_count += 1
             schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
             df = self.sqlContext.createDataFrame(rdd, schema)
-
-            predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
+            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
+                path = f'./cache/ResNet50/train/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
+                predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model, path)
+            else:
+                predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
 
             if self.configs.verbose:
                 print(f"Predictions = {predictions}")
@@ -185,4 +197,57 @@ class Trainer:
         if self.split is 'train':
             print(f"epoch: {self.epoch} | batch: {self.batch_count}")
         print("Total Batch Size of RDD Received :",len(rdd.collect()))
-        print("---------------------------------------")         
+        print("---------------------------------------")   
+
+    def predict(self):
+        stream = self.dataloader.parse_stream()
+        self.raw_model = self.configure_model()
+        self.load_checkpoint('epoch-0-batch-195')
+        stream.foreachRDD(self.__predict__)
+
+        # print(f"Test Accuracy : {np.mean(self.test_accuracy)}")
+        # print(f"Test Loss : {np.mean(self.test_loss)}")
+        # print(f"Test Precision : {np.mean(self.test_precision)}")
+        # print(f"Test Recall : {np.mean(self.test_recall)}")
+        # print(f"Test F1 Score: {np.mean(self.test_f1)}")
+
+        
+
+        self.ssc.start()
+        self.ssc.awaitTermination()
+
+    def __predict__(self, timestamp, rdd: pyspark.RDD) -> DataFrame:     
+        if not rdd.isEmpty():
+            self.batch_count += 1
+            total_batches = math.ceil(1e4//self.configs.batch_size)
+            schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
+            df = self.sqlContext.createDataFrame(rdd, schema)
+            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
+                path = f'./cache/ResNet50/test/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
+                _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model, path)
+            else:
+                _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model)
+            self.test_accuracy += accuracy/total_batches
+            self.test_loss += loss/total_batches
+            self.test_precision += precision/total_batches
+            self.test_recall += recall/total_batches
+            self.test_f1 += f1/total_batches
+            print(f"Test Accuracy : ", self.test_accuracy)
+            print(f"Test Loss : ",self.test_loss)
+            print(f"Test Precision :",self.test_precision)
+            print(f"Test Recall : ", self.test_recall)
+            print(f"Test F1 Score: ",self.test_f1)
+
+            path = os.path.join(self.configs.ckpt_dir,self.configs.model_name)
+            with open(f"{path}/test-scores-{self.configs.batch_size}.txt", "w+") as f:
+                f.write(f"Test Accuracy : {self.test_accuracy} \n")
+                f.write(f"Test Loss : {self.test_loss} \n")
+                f.write(f"Test Precision : {self.test_precision} \n")
+                f.write(f"Test Recall : {self.test_recall} \n")
+                f.write(f"Test F1 Score: {self.test_f1} \n")
+
+        print(f"batch: {self.batch_count}")
+        print("Total Batch Size of RDD Received :",len(rdd.collect()))
+        print("---------------------------------------")   
+        
+        

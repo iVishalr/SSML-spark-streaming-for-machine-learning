@@ -1,5 +1,5 @@
 from trainer import TrainingConfig, SparkConfig, Trainer
-from models import MLP,SVM,Kmeans
+from models import MLP,SVM,Kmeans,DeepImageMLP,DeepImageSVM
 
 from transforms import Transforms, RandomHorizontalFlip, Normalize
 
@@ -10,10 +10,13 @@ os.environ["OMP_NUM_THREADS"] = "4"
 transforms = Transforms([RandomHorizontalFlip(p=0.345), Normalize(mean=(0.4913997551666284, 0.48215855929893703, 0.4465309133731618), std=(0.24703225141799082, 0.24348516474564, 0.26158783926049628))])
 
 if __name__ == "__main__":
-    train_config = TrainingConfig()
+    train_config = TrainingConfig(model_name='dimsvm')
     spark_config = SparkConfig()
     mlp = MLP(layers=[3072,512,64,10])
     svm = SVM()
     km = Kmeans()
-    trainer = Trainer(mlp,"train", train_config, spark_config, transforms)
+    dimlp = DeepImageMLP()
+    dimsvm = DeepImageSVM()
+    trainer = Trainer(dimsvm,"train", train_config, spark_config, transforms)
+    # trainer.predict()
     trainer.train()

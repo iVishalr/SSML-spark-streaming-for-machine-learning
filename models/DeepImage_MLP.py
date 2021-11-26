@@ -17,12 +17,13 @@ warnings.filterwarnings('ignore')
 
 register_spark()
 
-class MLP:
-    def __init__(self, layers=[3072,512,64,10], activation="relu"):
+class DeepImageMLP:
+    def __init__(self, layers=[2048,128,64,10], activation="relu"):
         self.model = MLPClassifier(hidden_layer_sizes=layers, activation=activation)
 
-    def train(self, df: DataFrame, mlp : MLPClassifier) -> List:
-        X = np.array(df.select("image").collect()).reshape(-1,3072)
+    def train(self, df: DataFrame, mlp : MLPClassifier, path) -> List:
+        with open(path, "rb") as f:
+            X = np.load(f)
         y = np.array(df.select("label").collect()).reshape(-1)
         print(X.shape)
         print(y)
@@ -49,8 +50,9 @@ class MLP:
         model.max_iter = configs.max_epochs
         return model
 
-    def predict(self, df: DataFrame, mlp : MLPClassifier) -> List:
-        X = np.array(df.select("image").collect()).reshape(-1,3072)
+    def predict(self, df: DataFrame, mlp : MLPClassifier, path) -> List:
+        with open(path, "rb") as f:
+            X = np.load(f)
         y = np.array(df.select("label").collect()).reshape(-1)
         
         predictions = mlp.predict(X)
