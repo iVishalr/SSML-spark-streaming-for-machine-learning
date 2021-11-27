@@ -9,6 +9,16 @@ Currently we are working on implementing deep learning models. We are using CIFA
 Download and extract the dataset from [here](https://drive.google.com/drive/folders/1hKe06r4TYxqQOwEOUrk6i9e15Vt2EZGC). Copy the CIFAR folder to project directory.
 
 ## Requirements
+
+Install python3.7 by executing the following commands :
+
+```bash
+$ sudo apt update
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository ppa:deadsnakes/ppa
+$ sudo apt install python3.7
+```
+
 Use `Python3.7` to install the following packages
 
 1. numpy
