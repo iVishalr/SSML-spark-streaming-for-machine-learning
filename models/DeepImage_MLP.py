@@ -26,7 +26,7 @@ class DeepImageMLP:
             X = np.load(f)
         y = np.array(df.select("label").collect()).reshape(-1)
         print(X.shape)
-        print(y)
+        print(y.shape)
 
         with parallel_backend("spark", n_jobs=4):
             mlp.partial_fit(X,y,np.arange(0,10).tolist())

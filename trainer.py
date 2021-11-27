@@ -39,7 +39,7 @@ class SparkConfig:
     host = "local"
     stream_host = "localhost"
     port = 6100
-    batch_interval = 3
+    batch_interval = 2
 
     def __init__(self, **kwargs) -> None:
         for key,value in kwargs.items():
@@ -216,10 +216,10 @@ class Trainer:
                 self.smooth_f1.append(np.mean(self.f1))
 
             if self.split is 'train':
-                if self.batch_count!=0 and self.batch_count%(self.configs.num_samples//self.configs.batch_size) == 0:
+                if self.batch_count!=0 and self.batch_count%((self.configs.num_samples//self.configs.batch_size)+1) == 0:
                     self.epoch+=1
 
-                if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==(self.configs.num_samples//self.configs.batch_size) and self.epoch%self.configs.ckpt_interval == 0):
+                if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==((self.configs.num_samples//self.configs.batch_size)+1) and self.epoch%self.configs.ckpt_interval == 0):
                     if self.save:
                         self.save_checkpoint(f"epoch-{self.epoch}")
                     self.batch_count = 0
@@ -234,7 +234,7 @@ class Trainer:
     def predict(self):
         stream = self.dataloader.parse_stream()
         self.raw_model = self.configure_model()
-        self.load_checkpoint('epoch-0-batch-195')
+        self.load_checkpoint('epoch-1')
         
         stream.foreachRDD(self.__predict__)
 

@@ -85,7 +85,7 @@ class Dataset:
                 data_received+=1
                 pbar.update(1)
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
-                time.sleep(3)
+                time.sleep(2)
         for batch in [[self.data,self.labels]]:
                 image,labels = batch
                 image = np.array(image)
@@ -113,7 +113,7 @@ class Dataset:
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
                 self.data = []
                 self.labels = []
-                time.sleep(3)    
+                time.sleep(2)    
         pbar.pos=0
         self.epoch+=1
 

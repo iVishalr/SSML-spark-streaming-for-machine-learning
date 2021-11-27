@@ -19,5 +19,5 @@ if __name__ == "__main__":
     dimlp = DeepImageMLP()
     dimsvm = DeepImageSVM()
     # deepFeature = DeepImage(modelName="ResNet50")
-    trainer = Trainer(mlp,"train", train_config, spark_config, transforms)
-    trainer.train()
+    trainer = Trainer(dimlp,"train", train_config, spark_config, transforms)
+    trainer.predict()
