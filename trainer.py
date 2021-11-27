@@ -53,7 +53,7 @@ class Trainer:
         self.split = split
         self.configs = training_config
         self.sparkConf = spark_config
-        self.transforms = transforms
+        self.transforms = transforms if not isinstance(self.model, DeepImage) else Transforms([]) 
         self.sc = SparkContext(f"{self.sparkConf.host}[{self.sparkConf.receivers}]",f"{self.sparkConf.appName}")
         self.ssc = StreamingContext(self.sc,self.sparkConf.batch_interval)
         self.sqlContext = SQLContext(self.sc)
@@ -172,6 +172,7 @@ class Trainer:
             df = self.sqlContext.createDataFrame(rdd, schema)
             
             if isinstance(self.model, DeepImage):
+                print(self.transforms)
                 if not os.path.exists(self.configs.cache_path):
                     os.mkdir(self.configs.cache_path)
                 
