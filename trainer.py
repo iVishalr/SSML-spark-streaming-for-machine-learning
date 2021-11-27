@@ -1,24 +1,19 @@
-import numpy as np
-import pyspark
 import math
-import json
-import matplotlib.pyplot as plt
-from pyspark import conf
 import os
+import numpy as np
 import pickle
+import pyspark
+import matplotlib.pyplot as plt
 
 from pyspark.context import SparkContext
-from pyspark.sql.context import SQLContext
 from pyspark.streaming.context import StreamingContext
-from pyspark.streaming.dstream import DStream
+from pyspark.sql.context import SQLContext
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.types import IntegerType, StructField, StructType,StringType,BinaryType
-from pyspark.ml.linalg import VectorUDT, DenseVector
-from sklearn.neural_network import MLPClassifier
-from models import DeepImageMLP
-from models.DeepImage_SVM import DeepImageSVM
-
-from models.MLP import MLP
+from pyspark.sql.types import IntegerType, StructField, StructType
+from pyspark.ml.linalg import VectorUDT
+from sparkdl.image import imageIO
+from models import MLP, SVM, DeepImageMLP, DeepImageSVM, DeepImage
+from transforms.transforms import Transforms
 
 class TrainingConfig:
     num_samples = 5e4
@@ -30,6 +25,8 @@ class TrainingConfig:
     ckpt_interval_batch = 195
     ckpt_dir = "./checkpoints/"
     model_name = "MLPvtest"
+    cache_path = "./DeepImageCache"
+    feature_head = "ResNet50"
     verbose = True
 
     def __init__(self, **kwargs) -> None:
@@ -51,7 +48,7 @@ class SparkConfig:
 from dataloader import DataLoader
 
 class Trainer:
-    def __init__(self, model : MLP, split:str, training_config:TrainingConfig, spark_config:SparkConfig, transforms) -> None:
+    def __init__(self, model, split:str, training_config:TrainingConfig, spark_config:SparkConfig, transforms: Transforms = Transforms([])) -> None:
         self.model = model
         self.split = split
         self.configs = training_config
@@ -81,13 +78,14 @@ class Trainer:
         self.test_precision = 0
         self.test_f1 = 0
 
+        self.save = True if not isinstance(self.model,DeepImage) else False
+
     def save_checkpoint(self, message):
 
         path = os.path.join(self.configs.ckpt_dir,self.configs.model_name)
         print(f"Saving Model under {path}/...{message}")
         if not os.path.exists(self.configs.ckpt_dir):
             os.mkdir(self.configs.ckpt_dir)
-        
         
         if not os.path.exists(path):
             os.mkdir(path)
@@ -136,6 +134,8 @@ class Trainer:
         print("Model Loaded.")
 
     def plot(self, timestamp, df: pyspark.RDD) -> None:
+        if not os.path.exists("images"):
+            os.mkdir("images")
         for i,ele in enumerate(df.collect()):
             image = ele[0].astype(np.uint8)
             image = image.reshape(32,32,3)
@@ -148,6 +148,13 @@ class Trainer:
 
     def train(self):
         stream = self.dataloader.parse_stream()
+
+        if isinstance(self.model, DeepImage):
+            #perform additional preprocessing for it to work with DeepImageFeaturizer
+            stream = stream.map(lambda x: [x[0].toArray(), x[1]])
+            stream = stream.map(lambda x: [x[0].reshape(32,32,3).astype(np.uint8), x[1]])
+            stream = stream.map(lambda x: [imageIO.imageArrayToStruct(x[0]),x[1]])
+
         self.raw_model = self.configure_model()
         stream.foreachRDD(self.__train__)
 
@@ -157,15 +164,37 @@ class Trainer:
     def __train__(self, timestamp, rdd: pyspark.RDD) -> DataFrame:
         if not rdd.isEmpty():
             self.batch_count += 1
-            schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
+            if isinstance(self.model, DeepImage):
+                schema = self.model.schema  
+            else:
+                schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
+
             df = self.sqlContext.createDataFrame(rdd, schema)
-            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
+            
+            if isinstance(self.model, DeepImage):
+                if not os.path.exists(self.configs.cache_path):
+                    os.mkdir(self.configs.cache_path)
+                
+                if not os.path.exists(os.path.join(self.configs.cache_path,self.configs.feature_head)):
+                    os.mkdir(os.path.join(self.configs.cache_path,self.configs.feature_head))
+
+                if not os.path.exists(os.path.join(self.configs.cache_path,self.configs.feature_head, "train" if self.split == "train" else "test")):
+                    os.mkdir(os.path.join(self.configs.cache_path,self.configs.feature_head,"train" if self.split == "train" else "test",))
+
+                if not os.path.exists(os.path.join(self.configs.cache_path,self.configs.feature_head, "train" if self.split == "train" else "test",f"batch{self.configs.batch_size}")):
+                    os.mkdir(os.path.join(self.configs.cache_path,self.configs.feature_head,"train" if self.split == "train" else "test",f"batch{self.configs.batch_size}"))
+
+                path = os.path.join(self.configs.cache_path, self.configs.feature_head, "train" if self.split == "train" else "test",f"batch{self.configs.batch_size}", f"batch-{self.batch_count-1}.npy")
+                predictions, accuracy, loss, precision, recall, f1 = self.model.featurize(df, self.raw_model, path)
+            
+            elif isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
                 path = f'./cache/ResNet50/train/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
                 predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model, path)
+            
             else:
                 predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
 
-            if self.configs.verbose:
+            if self.configs.verbose and self.save:
                 print(f"Predictions = {predictions}")
                 print(f"Accuracy = {accuracy}")
                 print(f"Loss = {loss}")
@@ -173,27 +202,30 @@ class Trainer:
                 print(f"Recall = {recall}")
                 print(f"F1 Score = {f1}")
 
-            self.accuracy.append(accuracy)
-            self.loss.append(loss)
-            self.precision.append(precision)
-            self.recall.append(recall)
-            self.f1.append(f1)
+            if self.save:
+                self.accuracy.append(accuracy)
+                self.loss.append(loss)
+                self.precision.append(precision)
+                self.recall.append(recall)
+                self.f1.append(f1)
 
-            self.smooth_accuracy.append(np.mean(self.accuracy))
-            self.smooth_loss.append(np.mean(self.loss))
-            self.smooth_precision.append(np.mean(self.precision))
-            self.smooth_recall.append(np.mean(self.recall))
-            self.smooth_f1.append(np.mean(self.f1))
+                self.smooth_accuracy.append(np.mean(self.accuracy))
+                self.smooth_loss.append(np.mean(self.loss))
+                self.smooth_precision.append(np.mean(self.precision))
+                self.smooth_recall.append(np.mean(self.recall))
+                self.smooth_f1.append(np.mean(self.f1))
 
             if self.split is 'train':
                 if self.batch_count!=0 and self.batch_count%(self.configs.num_samples//self.configs.batch_size) == 0:
                     self.epoch+=1
 
                 if (isinstance(self.configs.ckpt_interval, int) and self.epoch!=0 and self.batch_count==(self.configs.num_samples//self.configs.batch_size) and self.epoch%self.configs.ckpt_interval == 0):
-                    self.save_checkpoint(f"epoch-{self.epoch}")
+                    if self.save:
+                        self.save_checkpoint(f"epoch-{self.epoch}")
                     self.batch_count = 0
                 elif self.configs.ckpt_interval_batch is not None and self.batch_count!=0 and self.batch_count%self.configs.ckpt_interval_batch == 0:
-                    self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
+                    if self.save:
+                        self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
         if self.split is 'train':
             print(f"epoch: {self.epoch} | batch: {self.batch_count}")
         print("Total Batch Size of RDD Received :",len(rdd.collect()))
@@ -203,15 +235,8 @@ class Trainer:
         stream = self.dataloader.parse_stream()
         self.raw_model = self.configure_model()
         self.load_checkpoint('epoch-0-batch-195')
-        stream.foreachRDD(self.__predict__)
-
-        # print(f"Test Accuracy : {np.mean(self.test_accuracy)}")
-        # print(f"Test Loss : {np.mean(self.test_loss)}")
-        # print(f"Test Precision : {np.mean(self.test_precision)}")
-        # print(f"Test Recall : {np.mean(self.test_recall)}")
-        # print(f"Test F1 Score: {np.mean(self.test_f1)}")
-
         
+        stream.foreachRDD(self.__predict__)
 
         self.ssc.start()
         self.ssc.awaitTermination()
