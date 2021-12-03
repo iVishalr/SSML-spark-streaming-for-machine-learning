@@ -22,17 +22,20 @@ $ sudo apt install python3.7
 Use `Python3.7` to install the following packages
 
 1. numpy
-2. matplotlib
-3. tqdm
-4. pyspark==2.4.0
-5. Pillow
-6. keras==2.0.4
-7. tensorflow==1.13.1
-8. jieba
-9. tensorflowonspark
-10. sparkdl
-11. tensorframes
-12. kafka-python 
+2. pandas
+3. matplotlib
+4. tqdm
+5. pyspark==2.4.0
+6. Pillow
+7. sklearn
+8. joblibspark
+9. keras==2.0.4
+10. tensorflow==1.13.1
+11. jieba
+12. tensorflowonspark
+13. sparkdl
+14. tensorframes
+15. kafka-python 
 
 Please use the following command to install the above packages.
 
@@ -70,9 +73,9 @@ $ wget https://repo1.maven.org/maven2/org/tensorflow/libtensorflow_jni/1.13.1/li
 Copy the following alias into your `.bashrc` file
 
 ```bash
-$ alias spark-submit="/opt/spark/bin/spark-submit --packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /home/pes1ug19cs019/.ivy2/jars/tensorframes-0.2.9-s_2.11.jar,/home/pes1ug19cs019/.ivy2/jars/spark-deep-learning-0.3.0-spark2.2-s_2.11.jar,/home/pes1ug19cs019/.ivy2/jars/tensorflow-1.13.1.jar,/home/pes1ug19cs019/.ivy2/jars/libtensorflow-1.13.1.jar,/home/pes1ug19cs019/.ivy2/jars/libtensorflow_jni-1.13.1.jar"
+$ alias spark-submit="/opt/spark/bin/spark-submit --packages com.typesafe.scala-logging:scala-logging-slf4j_2.10:2.1.2 --jars /home/$USER/.ivy2/jars/tensorframes-0.2.9-s_2.11.jar,/home/$USER/.ivy2/jars/spark-deep-learning-0.3.0-spark2.2-s_2.11.jar,/home/$USER/.ivy2/jars/tensorflow-1.13.1.jar,/home/$USER/.ivy2/jars/libtensorflow-1.13.1.jar,/home/$USER/.ivy2/jars/libtensorflow_jni-1.13.1.jar"
 ```
-Change the following environment varaibles `HADOOP_OPTS` and `LD_LIBRARY_PATH` in your `.bashrc` file to
+Change/Add the following environment varaibles `HADOOP_OPTS` and `LD_LIBRARY_PATH` in your `.bashrc` file to
 
 ```bash
 $ export HADOOP_OPTS="-Djava.library.path=$HADOOP_COMMON_LIB_NATIVE_DIR"
@@ -92,7 +95,7 @@ After making the above changes execute ```source ~/.bashrc && source ~/.profile`
 Execute the following code in terminal to start streaming the dataset.
 
 ```bash
-$ python3.7 ./stream.py --file="cifar" --batch-size=32
+$ python3.7 ./stream.py --file="cifar" --batch-size=32 --endless=True --split='train'
 ```
 
 ## Executing the spark driver code
@@ -101,5 +104,5 @@ Execute the following command in terminal to execute the driver code.
 
 
 ```bash
-$ spark-submit <Absolute_Path_To_Streaming.py> > output.txt 2>outputlog.txt
+$ spark-submit ./main.py > output.txt 2>outputlog.txt
 ```
