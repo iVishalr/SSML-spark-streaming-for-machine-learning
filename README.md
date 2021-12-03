@@ -88,6 +88,25 @@ Change the environment variable `PYSPARK_PYTHON` in `.profile` file to
 $ export PYSPARK_PYTHON="/usr/bin/python3.7"
 ```
 
+Finally, in order to set the logging properties for Spark, execute the following code:
+
+```bash
+$ cd /opt/spark
+$ cp conf/log4j.properties.template conf/log4j.properties
+```
+
+Open `conf/log4j.properties` file and change the following line
+
+```bash
+log4j.rootCategory=INFO, console
+```
+
+to
+
+```bash
+log4j.rootCategory=WARN, console
+```
+
 After making the above changes execute ```source ~/.bashrc && source ~/.profile```
 
 ## Streaming Dataset
