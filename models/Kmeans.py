@@ -16,9 +16,13 @@ from sklearn.metrics import log_loss, f1_score, precision_score, recall_score
 from scipy import stats
 from sklearn.metrics import mean_squared_error
 from mpl_toolkits.axes_grid1 import ImageGrid
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Normalizer
+from sklearn.manifold._t_sne import TSNE
+from sklearn.decomposition import IncrementalPCA
 
 import warnings
+
+from transforms.normalize import Normalize
 warnings.filterwarnings('ignore')
 
 register_spark()
@@ -34,30 +38,29 @@ class Kmeans:
         return model
 
     def train(self, df: DataFrame, km : MiniBatchKMeans) -> List:
+        # with open(path,"rb") as f:
+        #     X = np.load(f)
         X = np.array(df.select("image").collect()).reshape(-1,3072)
         y = np.array(df.select("label").collect()).reshape(-1)
-        # print(X.shape)
-        # print(y)
+
+        X = X.astype(np.float32)
+        y = y.astype(np.float32)
+        print(X.shape)
+        print(y)
 
         with parallel_backend("spark", n_jobs=4):
-            pca = PCA(n_components=10)
-            sc = StandardScaler() 
-            X_pca = sc.fit_transform(X)
-            X_pca = pca.fit_transform(X)
+            pca = PCA(n_components=64,whiten=False)
+            pca_model = pca.fit(X)
+            X_pca = pca_model.transform(X)
             km.partial_fit(X_pca)
 
         cluster_label_dict = {}
         for cluster_num in range(10):
-            # print("cluster_num + km labels",cluster_num, km.labels_)
             idx = self.cluster_indices(cluster_num, km.labels_)
             if len(idx) == 0:
-                # print("idx is empty so appending 0")
                 idx = np.array([0]) 
-                # print("idx", idx)
             original_labels = np.take(y, idx)
-            # print("original labels", original_labels)
             mode = stats.mode(original_labels)[0][0]
-            # print(mode)
             cluster_label_dict.update({cluster_num: mode})
 
         # prediction
@@ -65,29 +68,21 @@ class Kmeans:
         predicted_labels = np.vectorize(cluster_label_dict.get)(predicted_cluster)
 
         accuracy = self.classification_accuracy(predicted_labels, y)
-        # print(" K means clustering accuracy for cifar 10 = {}".format(accuracy))
 
         # visualise clusters
-        cluster_dict = {key: [] for key in np.arange(0,10)}
-        for i,value in enumerate(predicted_cluster):
-            cluster_dict[value].append(X[i])
-        cluster_centroids = km.cluster_centers_
-        # print("cluster_centroids", cluster_centroids)
-        self.visualize(cluster_centroids.astype(np.uint8), cluster_dict, y)
-
-        
-        # predictions = km.predict(X)
-       
-        # accuracy = km.score(X, y)
-        
-        # loss = mean_squared_error(y,predicted_cluster)
+        # cluster_dict = {key: [] for key in np.arange(0,10)}
+        # for i,value in enumerate(predicted_cluster):
+        #     cluster_dict[value].append(X[i])
+        # cluster_centroids = km.cluster_centers_
+        # # print("cluster_centroids", cluster_centroids)
+        # self.visualize(cluster_centroids.astype(np.uint8), cluster_dict, y)
 
         loss = km.inertia_
         precision = precision_score(y,predicted_cluster, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predicted_cluster, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
 
-        return [predicted_cluster, accuracy, loss, precision, recall, f1]
+        return [km,predicted_cluster, accuracy, loss, precision, recall, f1]
 
     def classification_accuracy(self, prediction, ground_truth):
         ground_truth = ground_truth[:prediction.shape[0]]
@@ -118,7 +113,7 @@ class Kmeans:
         for i in cluster_dict:
             if len(cluster_dict[i]) == 0:
                 continue
-            print("length of cluster_dict[i]",len(cluster_dict[i]))
+            # print("length of cluster_dict[i]",len(cluster_dict[i]))
             data = np.vstack(cluster_dict[i]).reshape(-1, 32,32,3).astype(np.uint8)
             n = min(25, data.shape[0]) 
             random = False

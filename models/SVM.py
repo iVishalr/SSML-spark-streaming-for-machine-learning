@@ -42,11 +42,11 @@ class SVM:
         predictions_prob = svm.predict_proba(X)
         predictions_prob = np.array(predictions_prob)
         predictions_prob[np.isnan(predictions_prob)] = 0 
-        print(predictions_prob)
+
         accuracy = svm.score(X,y)
         loss = log_loss(y,predictions_prob,labels=np.arange(0,10), eps=1e-1)
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
 
-        return [predictions, accuracy, loss, precision, recall, f1]
+        return [svm,predictions, accuracy, loss, precision, recall, f1]

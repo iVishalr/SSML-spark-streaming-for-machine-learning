@@ -24,10 +24,11 @@ class MLP:
     def train(self, df: DataFrame, mlp : MLPClassifier) -> List:
         X = np.array(df.select("image").collect()).reshape(-1,3072)
         y = np.array(df.select("label").collect()).reshape(-1)
+
         print(X.shape)
         print(y)
 
-        with parallel_backend("spark", n_jobs=4):
+        with parallel_backend("spark", n_jobs=8):
             mlp.partial_fit(X,y,np.arange(0,10).tolist())
         # print("Score on training set: %0.8f" % mlp.score(X, y))
         predictions = mlp.predict(X)
@@ -38,7 +39,7 @@ class MLP:
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
 
-        return [predictions, accuracy, loss, precision, recall, f1]
+        return [mlp,predictions, accuracy, loss, precision, recall, f1]
 
     def configure_model(self, configs):
         model = self.model

@@ -30,7 +30,7 @@ class DeepImageMLP:
 
         with parallel_backend("spark", n_jobs=4):
             mlp.partial_fit(X,y,np.arange(0,10).tolist())
-        # print("Score on training set: %0.8f" % mlp.score(X, y))
+
         predictions = mlp.predict(X)
         predictions_prob = mlp.predict_proba(X)
         accuracy = mlp.score(X,y)
@@ -39,7 +39,7 @@ class DeepImageMLP:
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
 
-        return [predictions, accuracy, loss, precision, recall, f1]
+        return [mlp,predictions, accuracy, loss, precision, recall, f1]
 
     def configure_model(self, configs):
         model = self.model

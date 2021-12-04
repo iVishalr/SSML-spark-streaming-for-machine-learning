@@ -43,11 +43,26 @@ class DeepImageSVM:
         predictions_prob = svm.predict_proba(X)
         predictions_prob = np.array(predictions_prob)
         predictions_prob[np.isnan(predictions_prob)] = 0 
-        print(predictions_prob)
         accuracy = svm.score(X,y)
         loss = log_loss(y,predictions_prob,labels=np.arange(0,10), eps=1e-1)
-        # loss = 0
-        # loss = -np.sum(y.reshape(-1,1)*(np.log(predictions_prob+1e-7)))
+        precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
+        recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
+        f1 = 2*precision*recall/(precision+recall)
+
+        return [svm,predictions, accuracy, loss, precision, recall, f1]
+
+    def predict(self, df: DataFrame, svm : SGDClassifier, path) -> List:
+        with open(path, "rb") as f:
+            X = np.load(f)
+        y = np.array(df.select("label").collect()).reshape(-1)
+        
+        predictions = svm.predict(X)
+        predictions = np.array(predictions)
+        predictions_prob = svm.predict_proba(X)
+        accuracy = svm.score(X,y)
+        predictions_prob = np.array(predictions_prob)
+        predictions_prob[np.isnan(predictions_prob)] = 0 
+        loss = log_loss(y,predictions_prob,labels=np.arange(0,10),eps=1e-1)
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)

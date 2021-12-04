@@ -1,3 +1,4 @@
+from datetime import time
 import math
 import os
 import numpy as np
@@ -13,6 +14,7 @@ from pyspark.sql.types import IntegerType, StructField, StructType
 from pyspark.ml.linalg import VectorUDT
 from sparkdl.image import imageIO
 from models import MLP, SVM, DeepImageMLP, DeepImageSVM, DeepImage
+from models.Kmeans import Kmeans
 from transforms.transforms import Transforms
 
 class TrainingConfig:
@@ -22,7 +24,7 @@ class TrainingConfig:
     batch_size = 128
     alpha = 5e-4
     ckpt_interval = 1
-    ckpt_interval_batch = 195
+    ckpt_interval_batch = num_samples//batch_size
     ckpt_dir = "./checkpoints/"
     model_name = "MLPvtest"
     cache_path = "./DeepImageCache"
@@ -163,6 +165,7 @@ class Trainer:
 
     def __train__(self, timestamp, rdd: pyspark.RDD) -> DataFrame:
         if not rdd.isEmpty():
+            # self.plot(timestamp,rdd)
             self.batch_count += 1
             if isinstance(self.model, DeepImage):
                 schema = self.model.schema  
@@ -190,10 +193,13 @@ class Trainer:
             
             elif isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
                 path = f'./cache/ResNet50/train/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
-                predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model, path)
+                model, predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model, path)
             
             else:
-                predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
+                model, predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model)
+
+            self.raw_model = model
+            self.model.model = model
 
             if self.configs.verbose and self.save:
                 print(f"Predictions = {predictions}")
@@ -229,7 +235,7 @@ class Trainer:
                         self.save_checkpoint(f"epoch-{self.epoch}-batch-{self.batch_count}")
         if self.split is 'train':
             print(f"epoch: {self.epoch} | batch: {self.batch_count}")
-        print("Total Batch Size of RDD Received :",len(rdd.collect()))
+        print("Total Batch Size of RDD Received :",rdd.count())
         print("---------------------------------------")   
 
     def predict(self):
@@ -248,7 +254,7 @@ class Trainer:
             total_batches = math.ceil(1e4//self.configs.batch_size)
             schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
             df = self.sqlContext.createDataFrame(rdd, schema)
-            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
+            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model,Kmeans):
                 path = f'./cache/ResNet50/test/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
                 _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model, path)
             else:
@@ -273,7 +279,7 @@ class Trainer:
                 f.write(f"Test F1 Score: {self.test_f1} \n")
 
         print(f"batch: {self.batch_count}")
-        print("Total Batch Size of RDD Received :",len(rdd.collect()))
+        print("Total Batch Size of RDD Received :",rdd.count())
         print("---------------------------------------")   
         
         

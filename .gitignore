@@ -143,3 +143,7 @@ outputLog.txt
 outputlog.txt
 streamv2.py
 DeepImageCache
+output-Kmeans-test.txt
+outputlog-Kmeans-test.txt
+test_op.txt
+test_oplog.txt

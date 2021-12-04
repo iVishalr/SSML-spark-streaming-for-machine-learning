@@ -5,23 +5,23 @@ import numpy as np
 import pandas as pd
 import time
 
-accuracy = np.load('../checkpoints/MLPvtest/accuracy-epoch-20.npy')
-avg_accuracy = np.load('../checkpoints/MLPvtest/smooth_accuracy-epoch-20.npy')
+accuracy = np.load('../checkpoints/test/accuracy-epoch-1.npy')
+avg_accuracy = np.load('../checkpoints/test/smooth_accuracy-epoch-1.npy')
 
-acc = np.load('../checkpoints/MLPvtest/accuracy-epoch-20.npy')
-accsmooth = np.load('../checkpoints/MLPvtest/smooth_accuracy-epoch-20.npy')
+acc = np.load('../checkpoints/test/accuracy-epoch-1.npy')
+accsmooth = np.load('../checkpoints/test/smooth_accuracy-epoch-1.npy')
 
-loss = np.load('../checkpoints/MLPvtest/loss-epoch-20.npy')
-loss_smooth =  np.load('../checkpoints/MLPvtest/smooth_loss-epoch-20.npy')
+loss = np.load('../checkpoints/test/loss-epoch-1.npy')
+loss_smooth =  np.load('../checkpoints/test/smooth_loss-epoch-1.npy')
 
-recall = np.load('../checkpoints/MLPvtest/recall-epoch-20.npy')
-avg_recall = np.load('../checkpoints/MLPvtest/smooth_recall-epoch-20.npy')
+recall = np.load('../checkpoints/test/recall-epoch-1.npy')
+avg_recall = np.load('../checkpoints/test/smooth_recall-epoch-1.npy')
 
-precision = np.load('../checkpoints/MLPvtest/precision-epoch-20.npy')
-avg_precision = np.load('../checkpoints/MLPvtest/smooth_precision-epoch-20.npy')
+precision = np.load('../checkpoints/test/precision-epoch-1.npy')
+avg_precision = np.load('../checkpoints/test/smooth_precision-epoch-1.npy')
 
-f1 = np.load('../checkpoints/MLPvtest/f1-epoch-20.npy')
-avg_f1 = np.load('../checkpoints/MLPvtest/smooth_f1-epoch-20.npy')
+f1 = np.load('../checkpoints/test/f1-epoch-1.npy')
+avg_f1 = np.load('../checkpoints/test/smooth_f1-epoch-1.npy')
 
 
 

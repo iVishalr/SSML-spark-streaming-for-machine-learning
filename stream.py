@@ -22,6 +22,8 @@ parser.add_argument('--batch-size', '-b', help='Batch size',
 parser.add_argument('--endless', '-e', help='Enable endless stream',
                     required=False, type=bool, default=False)  # looping disabled by default
 parser.add_argument('--split','-s', help="training or test split", required=False, type=str, default='train')
+parser.add_argument('--sleep','-t', help="streaming interval", required=False, type=int, default=3)
+# parser.add_argument('--port','-p', help="tcp port", required=False, type=int, default=6100)
 
 TCP_IP = "localhost"
 TCP_PORT = 6100
@@ -85,7 +87,7 @@ class Dataset:
                 data_received+=1
                 pbar.update(1)
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
-                time.sleep(2)
+                time.sleep(sleep_time)
         for batch in [[self.data,self.labels]]:
                 image,labels = batch
                 image = np.array(image)
@@ -113,7 +115,7 @@ class Dataset:
                 pbar.set_description(f"epoch: {self.epoch} it: {data_received} | received : {received_shape} images")
                 self.data = []
                 self.labels = []
-                time.sleep(2)    
+                time.sleep(sleep_time)    
         pbar.pos=0
         self.epoch+=1
 
@@ -146,6 +148,7 @@ if __name__ == '__main__':
     input_file = args.file
     batch_size = args.batch_size
     endless = args.endless
+    sleep_time = args.sleep
     train_test_split = args.split
     dataset = Dataset()
     tcp_connection, _ = dataset.connectTCP()
