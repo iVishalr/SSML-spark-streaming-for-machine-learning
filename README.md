@@ -1,5 +1,7 @@
 # SSML Spark Streaming for Machine Learning
 
+<img src="https://github.com/iVishalr/SSML-spark-streaming-for-machine-learning/blob/main/images/CIFAR10.png" alt="CIFAR10-image" height="300px" width="1000px"></img>
+
 UE19CS322 Big Data Project
 
 Team Members:
