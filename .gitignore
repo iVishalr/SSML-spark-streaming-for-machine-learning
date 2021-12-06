@@ -147,3 +147,7 @@ output-Kmeans-test.txt
 outputlog-Kmeans-test.txt
 test_op.txt
 test_oplog.txt
+outputlog1.txt
+outputlog2.txt
+testoutput.txt
+testoutputlog.txt

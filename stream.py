@@ -6,24 +6,15 @@ import pickle
 import socket
 import argparse
 import numpy as np
-from numpy.lib.shape_base import split
-import pandas as pd
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
-# Run using python3 stream.py to use CIFAR dataset and default batch_size as 100
-# Run using python3 stream.py -f <input_file> -b <batch_size> to use a custom file/dataset and batch size
-# Run using python3 stream.py -e True to stream endlessly in a loop
 parser = argparse.ArgumentParser(
     description='Streams a file to a Spark Streaming Context')
-parser.add_argument('--file', '-f', help='File to stream', required=False,
-                    type=str, default="cifar")    # path to file for streaming
-parser.add_argument('--batch-size', '-b', help='Batch size',
-                    required=False, type=int, default=100)  # default batch_size is 100
-parser.add_argument('--endless', '-e', help='Enable endless stream',
-                    required=False, type=bool, default=False)  # looping disabled by default
+parser.add_argument('--file', '-f', help='File to stream', required=False,type=str, default="cifar")
+parser.add_argument('--batch-size', '-b', help='Batch size',required=False, type=int, default=100)
+parser.add_argument('--endless', '-e', help='Enable endless stream',required=False, type=bool, default=False)
 parser.add_argument('--split','-s', help="training or test split", required=False, type=str, default='train')
 parser.add_argument('--sleep','-t', help="streaming interval", required=False, type=int, default=3)
-# parser.add_argument('--port','-p', help="tcp port", required=False, type=int, default=6100)
 
 TCP_IP = "localhost"
 TCP_PORT = 6100
@@ -45,19 +36,16 @@ class Dataset:
         data = np.vstack(self.data)
         self.data = list(map(np.ndarray.tolist, data))
         for ix in range(0,(len(self.data)//batch_size)*batch_size,batch_size):
-            # print(ix)
             image = self.data[ix:ix+batch_size]
             label = self.labels[ix:ix+batch_size]
             batch.append([image,label])
         
         self.data = self.data[ix+batch_size:]
         self.labels = self.labels[ix+batch_size:]
-        # print(f"Remaining Images : {len(self.data)}")
         return batch
 
-    # separate function to stream CIFAR batches since the format is different
     def sendCIFARBatchFileToSpark(self,tcp_connection, input_batch_file):
-        # load the entire dataset
+        
         pbar = tqdm(total=int((5e4//batch_size)+1)) if train_test_split=='train' else tqdm(total=int((1e4//batch_size)+1))
         data_received = 0
         for file in input_batch_file:
@@ -73,7 +61,7 @@ class Dataset:
                 payload = dict()
                 for mini_batch_index in range(len(image)):
                     payload[mini_batch_index] = dict()
-                    for feature_index in range(feature_size):  # iterate over features
+                    for feature_index in range(feature_size):
                         payload[mini_batch_index][f'feature{feature_index}'] = image[mini_batch_index][feature_index]
                     payload[mini_batch_index]['label'] = labels[mini_batch_index]
 
@@ -99,7 +87,7 @@ class Dataset:
                 payload = dict()
                 for mini_batch_index in range(len(image)):
                     payload[mini_batch_index] = dict()
-                    for feature_index in range(feature_size):  # iterate over features
+                    for feature_index in range(feature_size):
                         payload[mini_batch_index][f'feature{feature_index}'] = image[mini_batch_index][feature_index]
                     payload[mini_batch_index]['label'] = labels[mini_batch_index]
 
@@ -119,7 +107,7 @@ class Dataset:
         pbar.pos=0
         self.epoch+=1
 
-    def connectTCP(self):   # connect to the TCP server -- there is no need to modify this function
+    def connectTCP(self):   
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((TCP_IP, TCP_PORT))
@@ -132,11 +120,11 @@ class Dataset:
     def streamCIFARDataset(self,tcp_connection, dataset_type='cifar'):
         CIFAR_BATCHES = [
             'data_batch_1',
-            'data_batch_2',   # uncomment to stream the second training dataset
-            'data_batch_3',   # uncomment to stream the third training dataset
-            'data_batch_4',   # uncomment to stream the fourth training dataset
-            'data_batch_5',    # uncomment to stream the fifth training dataset
-            'test_batch'      # uncomment to stream the test dataset
+            'data_batch_2',   
+            'data_batch_3',   
+            'data_batch_4',   
+            'data_batch_5',    
+            'test_batch'
         ]
         CIFAR_BATCHES = CIFAR_BATCHES[:-1] if train_test_split=='train' else [CIFAR_BATCHES[-1]]
         self.sendCIFARBatchFileToSpark(tcp_connection,CIFAR_BATCHES)
@@ -153,7 +141,6 @@ if __name__ == '__main__':
     dataset = Dataset()
     tcp_connection, _ = dataset.connectTCP()
 
-    # to stream a custom dataset, uncomment the elif block and create your own dataset streamer function (or modify the existing one)
     if input_file == "cifar":
         _function = dataset.streamCIFARDataset
     if endless:
@@ -163,8 +150,3 @@ if __name__ == '__main__':
         _function(tcp_connection, input_file)
 
     tcp_connection.close()
-
-# Setup your own dataset streamer by following the examples above.
-# If you wish to stream a single newline delimited file, use streamFile()
-# If you wish to stream a CSV file, use streamCSVFile()
-# If you wish to stream any other type of file(JSON, XML, etc.), write an appropriate function to load and stream the file

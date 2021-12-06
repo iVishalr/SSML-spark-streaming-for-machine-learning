@@ -1,10 +1,9 @@
 import numpy as np
-import pyspark
 import sparkdl
-from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.types import StructType, StructField, BinaryType, IntegerType, StringType
 from pyspark.ml import Pipeline
 from sparkdl import DeepImageFeaturizer
+from pyspark.sql.dataframe import DataFrame
+from pyspark.sql.types import StructType, StructField, BinaryType, IntegerType, StringType
 
 
 class DeepImage:

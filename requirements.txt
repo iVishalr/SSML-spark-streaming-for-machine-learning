@@ -11,4 +11,4 @@ tensorflowonspark
 sparkdl
 tensorframes
 kafka-python
-
+torchvision

@@ -1,0 +1,3 @@
+Deep SVM - lr = 3e-5 bs = 256 max epochs = 50
+SVM also same configuration
+Deep MLP layers = [2048,512,64,10], bs = 256, max_epochs=100, lr = 3e-4, alpha = 5e-4 IMPORTANT 2048 not 3072! (Why?) -training this now

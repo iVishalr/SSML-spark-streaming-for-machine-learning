@@ -1,4 +1,3 @@
-from datetime import time
 import math
 import os
 import numpy as np
@@ -13,9 +12,8 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import IntegerType, StructField, StructType
 from pyspark.ml.linalg import VectorUDT
 from sparkdl.image import imageIO
-from models import MLP, SVM, DeepImageMLP, DeepImageSVM, DeepImage
-from models.Kmeans import Kmeans
-from transforms.transforms import Transforms
+from models import MLP, SVM, Kmeans, DeepImageMLP, DeepImageSVM, DeepImage, DeepKmeans
+from transforms import Transforms
 
 class TrainingConfig:
     num_samples = 5e4
@@ -29,6 +27,7 @@ class TrainingConfig:
     model_name = "MLPvtest"
     cache_path = "./DeepImageCache"
     feature_head = "ResNet50"
+    load_model = "epoch-1"
     verbose = True
 
     def __init__(self, **kwargs) -> None:
@@ -191,7 +190,7 @@ class Trainer:
                 path = os.path.join(self.configs.cache_path, self.configs.feature_head, "train" if self.split == "train" else "test",f"batch{self.configs.batch_size}", f"batch-{self.batch_count-1}.npy")
                 predictions, accuracy, loss, precision, recall, f1 = self.model.featurize(df, self.raw_model, path)
             
-            elif isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM):
+            elif isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model, DeepKmeans):
                 path = f'./cache/ResNet50/train/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
                 model, predictions, accuracy, loss, precision, recall, f1 = self.model.train(df,self.raw_model, path)
             
@@ -241,7 +240,7 @@ class Trainer:
     def predict(self):
         stream = self.dataloader.parse_stream()
         self.raw_model = self.configure_model()
-        self.load_checkpoint('epoch-1')
+        self.load_checkpoint(self.configs.load_model)
         
         stream.foreachRDD(self.__predict__)
 
@@ -254,7 +253,7 @@ class Trainer:
             total_batches = math.ceil(1e4//self.configs.batch_size)
             schema = StructType([StructField("image",VectorUDT(),True),StructField("label",IntegerType(),True)])
             df = self.sqlContext.createDataFrame(rdd, schema)
-            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model,Kmeans):
+            if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model,DeepKmeans):
                 path = f'./cache/ResNet50/test/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
                 _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model, path)
             else:
