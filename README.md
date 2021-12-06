@@ -1,10 +1,14 @@
 # SSML Spark Streaming for Machine Learning
 
-UE19CS322 Project
+UE19CS322 Big Data Project
 
-Currently we are working on implementing deep learning models. We are using CIFAR-10 dataset for classification.
+Team Members:
+1. [Abhishek Aditya BS](https://github.com/Abhishek-Aditya-bs)
+2. [T Vijay Prashant](https://github.com/tvijayprashant)
+3. [Vishal R](https://github.com/iVishalr)
+4. [Yashas KS](https://github.com/Yashas120)
 
-## Dataset
+## CIFAR10 Dataset
 
 Download and extract the dataset from [here](https://drive.google.com/drive/folders/1hKe06r4TYxqQOwEOUrk6i9e15Vt2EZGC). Copy the CIFAR folder to project directory.
 
@@ -36,6 +40,7 @@ Use `Python3.7` to install the following packages
 13. sparkdl
 14. tensorframes
 15. kafka-python 
+16. torchvision
 
 Please use the following command to install the above packages.
 
@@ -114,7 +119,7 @@ After making the above changes execute ```source ~/.bashrc && source ~/.profile`
 Execute the following code in terminal to start streaming the dataset.
 
 ```bash
-$ python3.7 ./stream.py --file="cifar" --batch-size=32 --endless=True --split='train'
+$ python3.7 ./stream.py --file="cifar" --batch-size=128 --endless=True --split='train' --spleep=3
 ```
 
 ## Executing the spark driver code
