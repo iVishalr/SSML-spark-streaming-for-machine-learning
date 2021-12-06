@@ -189,7 +189,7 @@ class Trainer:
                     os.mkdir(os.path.join(self.configs.cache_path,self.configs.feature_head,"train" if self.split == "train" else "test",f"batch{self.configs.batch_size}"))
 
                 path = os.path.join(self.configs.cache_path, self.configs.feature_head, "train" if self.split == "train" else "test",f"batch{self.configs.batch_size}", f"batch-{self.batch_count-1}.npy")
-                predictions, accuracy, loss, precision, recall, f1 = self.model.featurize(df, self.raw_model, path)
+                model, predictions, accuracy, loss, precision, recall, f1 = self.model.featurize(df, self.raw_model, path)
             
             elif isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model, DeepKmeans):
                 path = f'./cache/ResNet50/train/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'

@@ -21,7 +21,7 @@ class DeepImage:
         print(f"Saving Feature_Batch to {path}")
         with open(path,"wb") as f:
             np.save(f,features)
-        return [0, 0, 0, 0, 0, 0, 0]
+        return [model,0, 0, 0, 0, 0, 0]
 
     def configure_model(self,configs):
         return self.model
