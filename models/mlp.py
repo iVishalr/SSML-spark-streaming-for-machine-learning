@@ -9,7 +9,7 @@ from joblibspark import register_spark
 from sklearn.utils import parallel_backend
 from sklearn.metrics import log_loss, precision_score, recall_score
 from sklearn.neural_network import MLPClassifier
-
+from sklearn.metrics import confusion_matrix
 from pyspark.sql.dataframe import DataFrame
 
 warnings.filterwarnings('ignore')
@@ -35,7 +35,7 @@ class MLP:
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
-
+        
         return [mlp,predictions, accuracy, loss, precision, recall, f1]
 
     def configure_model(self, configs):
@@ -58,5 +58,5 @@ class MLP:
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
-
-        return [predictions, accuracy, loss, precision, recall, f1]
+        cm = confusion_matrix(y, predictions)
+        return [predictions, accuracy, loss, precision, recall, f1, cm]

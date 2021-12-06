@@ -12,7 +12,7 @@ from sklearn.utils import parallel_backend
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 from sklearn.manifold import TSNE
 from sklearn.decomposition import IncrementalPCA, KernelPCA, TruncatedSVD, PCA
-
+from sklearn.metrics import confusion_matrix
 from pyspark.sql.dataframe import DataFrame
 
 from torchvision.utils import make_grid
@@ -71,7 +71,7 @@ class DeepKmeans:
         precision = precision_score(y,predicted_cluster, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predicted_cluster, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
-
+        cm = confusion_matrix(y,predicted_labels)
         X = self.inverse_transform(X,mean=(0.4913997551666284, 0.48215855929893703, 0.4465309133731618), std=(0.24703225141799082, 0.24348516474564, 0.26158783926049628))
         cluster_dict = {i:0 for i in np.unique(predicted_labels).astype(int)}
         for i in np.unique(predicted_labels):
@@ -80,7 +80,7 @@ class DeepKmeans:
         self.visualize(None,cluster_dict,y)
         cluster_dict = {}
 
-        return [predicted_labels,accuracy, loss, precision, recall, f1]
+        return [predicted_labels,accuracy, loss, precision, recall, f1, cm]
 
     def inverse_transform(self,X:np.ndarray, mean: List, std: List) -> np.ndarray:
         shape = X.shape

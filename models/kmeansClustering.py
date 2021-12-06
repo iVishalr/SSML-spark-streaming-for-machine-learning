@@ -13,6 +13,8 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score
 from sklearn.manifold import TSNE
 from sklearn.decomposition import IncrementalPCA, KernelPCA, TruncatedSVD, PCA
 
+from sklearn.metrics import confusion_matrix
+
 from pyspark.sql.dataframe import DataFrame
 
 from torchvision.utils import make_grid
@@ -28,7 +30,7 @@ class Kmeans:
         self.kpca = KernelPCA(n_components=336,kernel="rbf",alpha=2.67,gamma=5e-4,n_jobs=8)
         self.tsvd = TruncatedSVD(n_components=336)
         self.tsne = TSNE(n_components=2,perplexity=30,init="pca")
-    
+
     def configure_model(self, configs):
         model = self.model
         model.batch_size = configs.batch_size
@@ -43,12 +45,10 @@ class Kmeans:
         print(y)
 
         with parallel_backend("spark", n_jobs=8):
-            self.pca = self.pca.partial_fit(X)
-            X_pca = self.pca.transform(X)
-            print(X_pca.shape)
-            km.partial_fit(X_pca)
+            
+            km.partial_fit(X)
 
-        predicted_cluster = km.predict(X_pca)
+        predicted_cluster = km.predict(X)
         reference_labels = self.get_reference_dict(predicted_cluster,y)
         predicted_labels = self.get_labels(predicted_cluster,reference_labels)
         accuracy = accuracy_score(y,predicted_labels)
@@ -66,6 +66,7 @@ class Kmeans:
         predicted_cluster = km.predict(X_pca)
         reference_labels = self.get_reference_dict(predicted_cluster,y)
         predicted_labels = self.get_labels(predicted_cluster,reference_labels)
+        cm = confusion_matrix(y,predicted_labels)
         accuracy = accuracy_score(y,predicted_labels)
         loss = km.inertia_
         precision = precision_score(y,predicted_cluster, labels=np.arange(0,10),average="macro")
@@ -84,7 +85,7 @@ class Kmeans:
         self.visualize(None,cluster_dict,y)
         cluster_dict = {}
 
-        return [predicted_labels,accuracy, loss, precision, recall, f1]
+        return [predicted_labels,accuracy, loss, precision, recall, f1, cm]
 
     def inverse_transform(self,X:np.ndarray, mean: List, std: List) -> np.ndarray:
         shape = X.shape
@@ -105,6 +106,7 @@ class Kmeans:
         reference_label = {}
         # For loop to run through each label of cluster label
         for i in range(len(np.unique(predictions))):
+            print(np.unique(predictions))
             index = np.where(predictions == i,1,0)
             num = np.bincount(y[index==1]).argmax()
             reference_label[i] = num
@@ -116,8 +118,8 @@ class Kmeans:
             temp_labels[i] = reference_labels[clusters[i]]
         return temp_labels
 
-    def cluster_indices(self,clust_num, labels_array):
-        return np.where(labels_array == clust_num)[0]
+    # def cluster_indices(self,clust_num, labels_array):
+    #     return np.where(labels_array == clust_num)[0]
 
 
     def visualize(self,cluster_centroid, cluster_dict, y):
@@ -135,5 +137,6 @@ class Kmeans:
         for i in cluster_dict:
             grid = make_grid(tensor(cluster_dict[i].reshape(-1,32,32,3).transpose(0,3,1,2)),nrow=10)
             fig = plt.figure(figsize=(10, 10))
+            plt.tilte(f"Class : {classes[i]}")
             plt.imshow(grid.permute(1,2,0))
             plt.savefig(f"images/{classes[i]}.png")

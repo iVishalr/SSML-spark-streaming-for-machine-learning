@@ -10,6 +10,7 @@ from sklearn.utils import parallel_backend
 from sklearn.metrics import log_loss, precision_score, recall_score
 
 from pyspark.sql.dataframe import DataFrame
+from sklearn.metrics import confusion_matrix
 
 warnings.filterwarnings('ignore')
 register_spark()
@@ -62,5 +63,5 @@ class DeepImageSVM:
         precision = precision_score(y,predictions, labels=np.arange(0,10),average="macro")
         recall = recall_score(y,predictions, labels=np.arange(0,10),average="macro")
         f1 = 2*precision*recall/(precision+recall)
-
-        return [predictions, accuracy, loss, precision, recall, f1]
+        cm = confusion_matrix(y, predictions)
+        return [predictions, accuracy, loss, precision, recall, f1, cm]

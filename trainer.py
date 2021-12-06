@@ -69,6 +69,7 @@ class Trainer:
         self.recall = []
         self.smooth_recall = []
         self.f1 = []
+        self.cm = np.zeros((10,10))
         self.smooth_f1 = []
         self.epoch = 0
         self.batch_count = 0
@@ -255,9 +256,10 @@ class Trainer:
             df = self.sqlContext.createDataFrame(rdd, schema)
             if isinstance(self.model, DeepImageMLP) or isinstance(self.model, DeepImageSVM) or isinstance(self.model,DeepKmeans):
                 path = f'./cache/ResNet50/test/batch{self.configs.batch_size}/batch-{self.batch_count-1}.npy'
-                _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model, path)
+                _, accuracy, loss, precision, recall, f1, cm = self.model.predict(df, self.raw_model, path)
             else:
-                _, accuracy, loss, precision, recall, f1 = self.model.predict(df, self.raw_model)
+                _, accuracy, loss, precision, recall, f1, cm = self.model.predict(df, self.raw_model)
+            self.cm += cm
             self.test_accuracy += accuracy/total_batches
             self.test_loss += loss/total_batches
             self.test_precision += precision/total_batches
@@ -268,6 +270,7 @@ class Trainer:
             print(f"Test Precision :",self.test_precision)
             print(f"Test Recall : ", self.test_recall)
             print(f"Test F1 Score: ",self.test_f1)
+            print(f"Confusion matrix: \n", self.cm)
 
             path = os.path.join(self.configs.ckpt_dir,self.configs.model_name)
             with open(f"{path}/test-scores-{self.configs.batch_size}.txt", "w+") as f:
@@ -276,6 +279,9 @@ class Trainer:
                 f.write(f"Test Precision : {self.test_precision} \n")
                 f.write(f"Test Recall : {self.test_recall} \n")
                 f.write(f"Test F1 Score: {self.test_f1} \n")
+                f.write(f"Confusion matrix: \n{self.cm}\n")
+                
+            np.save(f"{path}/confusion-matrix.npy", self.cm)
 
         print(f"batch: {self.batch_count}")
         print("Total Batch Size of RDD Received :",rdd.count())
