@@ -7,15 +7,15 @@ transforms = Transforms([RandomHorizontalFlip(p=0.345),
                                 std=(0.24703225141799082, 0.24348516474564, 0.26158783926049628))])
 
 if __name__ == "__main__":
-    train_config = TrainingConfig(batch_size=512, 
+    train_config = TrainingConfig(batch_size=64, 
                                     max_epochs=100, 
                                     learning_rate=3e-5,
-                                    alpha=8e-4, 
-                                    model_name="KMEANS-Batch:512", 
-                                    ckpt_interval_batch=5e4, 
-                                    load_model="epoch-13")
+                                    alpha=5e-4, 
+                                    model_name="DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4", 
+                                    ckpt_interval_batch=1e4, 
+                                    load_model="epoch-5")
 
-    spark_config = SparkConfig(batch_interval=5,
+    spark_config = SparkConfig(batch_interval=3,
                                 port=6100)
 
     mlp = MLP(layers=[3072,128,64,10])
@@ -25,6 +25,6 @@ if __name__ == "__main__":
     deep_svm = DeepImageSVM()
     deepFeature = DeepImage(modelName="ResNet50")
     deep_kmeans = DeepKmeans()
-    trainer = Trainer(km,"train", train_config, spark_config, transforms)
-    trainer.train()
-    # trainer.predict()
+    trainer = Trainer(deep_mlp,"test", train_config, spark_config, transforms)
+    # trainer.train()
+    trainer.predict()

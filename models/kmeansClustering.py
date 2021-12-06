@@ -62,8 +62,8 @@ class Kmeans:
     def predict(self, df: DataFrame, km: MiniBatchKMeans) -> List:
         X = np.array(df.select("image").collect()).reshape(-1,3072)
         y = np.array(df.select("label").collect()).reshape(-1)
-        X_pca = self.pca.transform(X)
-        predicted_cluster = km.predict(X_pca)
+        # X_pca = self.pca.transform(X)
+        predicted_cluster = km.predict(X)
         reference_labels = self.get_reference_dict(predicted_cluster,y)
         predicted_labels = self.get_labels(predicted_cluster,reference_labels)
         cm = confusion_matrix(y,predicted_labels)
@@ -137,6 +137,6 @@ class Kmeans:
         for i in cluster_dict:
             grid = make_grid(tensor(cluster_dict[i].reshape(-1,32,32,3).transpose(0,3,1,2)),nrow=10)
             fig = plt.figure(figsize=(10, 10))
-            plt.tilte(f"Class : {classes[i]}")
+            plt.title(f"Class : {classes[i]}")
             plt.imshow(grid.permute(1,2,0))
             plt.savefig(f"images/{classes[i]}.png")

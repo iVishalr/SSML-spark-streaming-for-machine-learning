@@ -5,23 +5,23 @@ import numpy as np
 import pandas as pd
 import time
 
-accuracy = np.load('../checkpoints/test/accuracy-epoch-1.npy')
-avg_accuracy = np.load('../checkpoints/test/smooth_accuracy-epoch-1.npy')
+accuracy = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/accuracy-epoch-5.npy')
+avg_accuracy = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_accuracy-epoch-5.npy')
 
-acc = np.load('../checkpoints/test/accuracy-epoch-1.npy')
-accsmooth = np.load('../checkpoints/test/smooth_accuracy-epoch-1.npy')
+acc = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/accuracy-epoch-5.npy')
+accsmooth = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_accuracy-epoch-5.npy')
 
-loss = np.load('../checkpoints/test/loss-epoch-1.npy')
-loss_smooth =  np.load('../checkpoints/test/smooth_loss-epoch-1.npy')
+loss = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/loss-epoch-5.npy')
+loss_smooth =  np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_loss-epoch-5.npy')
 
-recall = np.load('../checkpoints/test/recall-epoch-1.npy')
-avg_recall = np.load('../checkpoints/test/smooth_recall-epoch-1.npy')
+recall = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/recall-epoch-5.npy')
+avg_recall = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_recall-epoch-5.npy')
 
-precision = np.load('../checkpoints/test/precision-epoch-1.npy')
-avg_precision = np.load('../checkpoints/test/smooth_precision-epoch-1.npy')
+precision = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/precision-epoch-5.npy')
+avg_precision = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_precision-epoch-5.npy')
 
-f1 = np.load('../checkpoints/test/f1-epoch-1.npy')
-avg_f1 = np.load('../checkpoints/test/smooth_f1-epoch-1.npy')
+f1 = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/f1-epoch-5.npy')
+avg_f1 = np.load('../checkpoints/DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4/smooth_f1-epoch-5.npy')
 
 
 
@@ -48,7 +48,7 @@ def plot_train_loss(loss, loss_smooth):
     locs =  np.arange(1,len(loss)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics (Train Loss)",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4 (Train Loss)",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train Loss",fontsize=15,labelpad=15)
     plt.savefig('./loss-pic.png')
@@ -72,7 +72,7 @@ def plot_train_accuracies(accuracy, avg_accuracy):
     locs = np.arange(1,len(accuracy)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics (Train Accuracy)",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4 (Train Accuracy)",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train Accuracy",fontsize=15,labelpad=15)
     plt.savefig('./acc-pic.png')
@@ -96,7 +96,7 @@ def plot_train_recall(recall, avg_recall):
     locs = np.arange(1,len(recall)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics (Train Recall)",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4 (Train Recall)",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train Recall",fontsize=15,labelpad=15)
     plt.savefig('./recall-pic.png')
@@ -120,7 +120,7 @@ def plot_train_precision(precision, avg_precision):
     locs = np.arange(1,len(precision)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics (Train Precision)",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4 (Train Precision)",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train Recall",fontsize=15,labelpad=15)
     plt.savefig('./precision-pic.png')
@@ -144,7 +144,7 @@ def plot_train_f1(f1, avg_f1):
     locs = np.arange(1,len(f1)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics (Train f1)",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4 (Train f1)",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train f1",fontsize=15,labelpad=15)
     plt.savefig('./f1-pic.png')
@@ -174,7 +174,7 @@ def all_plots(accuracy, loss, recall, precision, f1):
     locs = np.arange(1,len(f1)+1,1e3).astype(int)
     plt.xticks(ticks=locs,labels=xlabels)
     plt.legend(loc=0,prop={'size':10})
-    plt.title("Model Training Metrics",pad=20,fontsize=15)
+    plt.title("DeepMLP-Layers:2048-128-64-10-Batch:64-lr:1e-4-alpha:8e-4",pad=20,fontsize=15)
     plt.xlabel("Iterations",fontsize=15,labelpad=15)
     plt.ylabel("Train metrics",fontsize=15,labelpad=15)
     plt.savefig('./all-pic.png')
